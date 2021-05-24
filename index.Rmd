@@ -1,0 +1,149 @@
+---
+title: "Datos Hidrologicos"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Introducción
+
+En este trabajo se exploran datos hidrologicos de los ríos Estrella y Banano, con el fin de elaborar y ejecutar un código en RStudio con los datos de los de los caudales.
+
+
+### Datos hidrologicos ejercicio explorativo
+```{r}
+inp <- read.csv("FDC.csv")
+```
+
+### Visualizar la estructura del archivo
+```{r}
+head(inp)
+dim(inp)
+```
+
+### Evaluación de celdas vacías
+```{r}
+inp[!complete.cases(inp),]
+```
+
+### Gráfico de valores río Estrella y Banano
+```{r}
+plot(inp[,2],
+     main = "Volumen del agua",
+     xlab = "Caudal en mm diario",
+     ylab = "Fecha",
+     type = "l", 
+     col = "blue"
+     )
+lines(inp[,3], col="green")
+
+legend(  
+  x = "topleft",  
+  inset = 0.05,  
+  legend = c("Estrella", "Banano"),  
+  fill = c("blue", "green"),  
+  horiz = FALSE  
+)
+```
+
+### Resúmen de los datos de las columnas 2 y 3
+```{r}
+summary(inp[,2:3])
+```
+
+### Histogramas del río Estrella y Banano
+```{r}
+hist(inp[,2],
+main = "Estrella",
+xlab = "Cantidad de agua daria",
+ylab = "Fecruencia"
+)
+
+hist(inp[,3],
+     main = "Banano",
+     xlab = "Cantidad de agua daria",
+     ylab = "Fecruencia"
+)
+```
+
+### Asignación de nombres
+```{r}
+names(inp) <- c("fecha", "Estrella", "Banano")
+attach(inp)
+```
+
+### Series de tiempo
+```{r}
+Tempdate <- strptime(inp[,1], format= "%d/%m/%Y")
+```
+
+### Promedios anuales de los caudales
+```{r}
+MAQ_Estrella <- tapply(Estrella, format(Tempdate, format = "%Y"), FUN = sum)
+MAQ_Banano <- tapply(Banano, format (Tempdate, format = "%Y"), FUN = sum)
+```
+
+### Exportar archivo MAQ.csv al directorio de trabajo
+```{r}
+write.csv(rbind(MAQ_Estrella, MAQ_Banano), file = "MAQ.csv")
+```
+
+### Gráfico promedios anuales de los caudal(comparación entre caudales)
+```{r}
+plot(
+  MAQ_Banano, ylim = c(0, 3000),
+  main = 'Valores anuales en mm por año',
+  xlab = 'Fechas',
+  ylab = 'Caudal anual en mm'
+)
+lines(MAQ_Estrella, col = 2)
+
+legend(
+  x = "topright",
+  inset = 0.008,
+  legend = c("Estrella", "Banano"),
+  fill = c("red", "black"),
+  horiz = FALSE
+)
+```
+
+### Promedios mensuales de los caudales
+```{r}
+MMQ_Estrella <- tapply(Estrella, format(Tempdate, format = "%m"), FUN = sum)
+MMQ_Banano <- tapply(Banano, format (Tempdate, format = "%m"), FUN = sum)
+```
+
+### Exportar archivo MMQ.csv al directorio de trabajo
+```{r}
+write.csv(rbind(MMQ_Estrella, MMQ_Banano), file = "MMQ.csv")
+```
+
+#Analisis de correlación
+```{r}
+corinp <- cor(inp[,2:3],method = "spearman")
+```
+
+### Gráfico Estrella-Banano
+```{r}
+plot(Estrella, Banano,
+     main = 'Correlacion entre la cuenca del Rio Estrella contra el Rio Banano',
+)
+```
+
+### Modelo de regresión lineal
+```{r}
+inp.lm <- lm(Estrella ~ Banano, data = inp)
+summary(inp.lm)
+```
+
+### Gráficos modelo de regresión lineal
+```{r}
+plot(inp.lm)
+```
+
+
+
+```{r}
+
+```
